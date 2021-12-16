@@ -1,0 +1,38 @@
+name: 'Docker deployment'
+description: 'Despliegue docker por SSH'
+inputs:
+  ssh-host:  # id of input
+    description: 'SSH host'
+    required: true
+  ssh-user:
+    description: 'SSH user'
+    required: true
+  ssh-private-key:
+    description: 'SSH private key'
+    required: true
+  origin-path:
+    description: 'Path for origin files'
+    required: true
+  destination-path:
+    description: 'Path to copy files'
+    required: true
+  compose-path:
+    description: 'Subfolder where docker-compose.yml is'
+    required: false
+    default: "/"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Prepare path
+      run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "22" ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} "mkdir -p ${{ inputs.destination-path }} && rm -fr ${{ inputs.destination-path }}/* && exit" && echo "Path listo"
+      shell: bash
+    - name: Copy files
+      run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -P "22" -r ${{ inputs.origin-path }} ${{ inputs.ssh-user }}@${{ inputs.ssh-host }}:${{ inputs.destination-path }} && echo "Ficheros copiados"
+      shell: bash
+    - name: Pull images
+      run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "22" ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} "TAG=SNAPSHOT docker-compose -f ${{ inputs.destination-path }}${{ inputs.compose-path }}/docker-compose.yml pull && exit" && echo "Imágenes actualizadas"
+      shell: bash
+    - name: Deploy docker
+      run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "22" ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} "TAG=SNAPSHOT docker-compose -f ${{ inputs.destination-path }}${{ inputs.compose-path }}/docker-compose.yml up -d && exit" && echo "Aplicacion desplegada"
+      shell: bash
