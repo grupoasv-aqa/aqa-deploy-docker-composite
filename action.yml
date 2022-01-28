@@ -44,7 +44,7 @@ runs:
       shell: bash
     - name: Execution permission to custom script
       if: ${{ inputs.deploy-script != '' }}
-      run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "22" ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} "chmod +x ${{ inputs.destination-path }}${{ inputs.deploy-script }} && exit" && echo "Aplicacion desplegada con script custom"
+      run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "22" ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} "chmod +x ${{ inputs.destination-path }}/${{ inputs.deploy-script }} && exit" && echo "Aplicacion desplegada con script custom"
       shell: bash
     - name: Execute custom script
       if: ${{ inputs.deploy-script != '' }}
