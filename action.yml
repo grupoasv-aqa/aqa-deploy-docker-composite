@@ -1,5 +1,5 @@
 name: 'Docker deployment'
-description: 'Despliegue docker por SSH'
+description: 'Docker deployment via SSH'
 inputs:
   ssh-host:
     description: 'SSH host'
@@ -10,43 +10,37 @@ inputs:
   ssh-private-key:
     description: 'SSH private key'
     required: true
+  image-version:
+    description: 'Docker image version to deploy'
+    required: true
+  environment:
+    description: 'Application environment'
+    required: true
   origin-path:
     description: 'Path for origin files'
     required: true
   destination-path:
     description: 'Path to copy files'
     required: true
-  compose-path:
-    description: 'Subfolder where docker-compose.yml is'
-    required: false
-    default: "/"
   deploy-script:
     description: 'Script provided by app to deploy it'
-    required: false
-    default: ""
+    required: true
 
 runs:
   using: "composite"
   steps:
     - name: Prepare path
-      run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "22" ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} "mkdir -p ${{ inputs.destination-path }} && rm -fr ${{ inputs.destination-path }}/* && exit" && echo "Path listo"
+      run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "22" ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} "mkdir -p ${{ inputs.destination-path }} && exit" && echo "Destination path ready"
       shell: bash
+
     - name: Copy files
-      run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -P "22" -r ${{ inputs.origin-path }} ${{ inputs.ssh-user }}@${{ inputs.ssh-host }}:${{ inputs.destination-path }} && echo "Ficheros copiados"
+      run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -P "22" -r ${{ inputs.origin-path }}/* ${{ inputs.ssh-user }}@${{ inputs.ssh-host }}:${{ inputs.destination-path }} && echo "Copied files"
       shell: bash
-    - name: Pull images
-      if: ${{ inputs.deploy-script == '' }}
-      run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "22" ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} "TAG=SNAPSHOT docker-compose -f ${{ inputs.destination-path }}${{ inputs.compose-path }}/docker-compose.yml pull && exit" && echo "Imágenes actualizadas"
-      shell: bash
-    - name: Deploy docker
-      if: ${{ inputs.deploy-script == '' }}
-      run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "22" ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} "TAG=SNAPSHOT docker-compose -f ${{ inputs.destination-path }}${{ inputs.compose-path }}/docker-compose.yml up -d && exit" && echo "Aplicacion desplegada"
-      shell: bash
+
     - name: Execution permission to custom script
-      if: ${{ inputs.deploy-script != '' }}
-      run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "22" ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} "chmod +x ${{ inputs.destination-path }}/${{ inputs.deploy-script }} && exit" && echo "Aplicacion desplegada con script custom"
+      run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "22" ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} "chmod +x ${{ inputs.destination-path }}/${{ inputs.deploy-script }} && exit" && echo "Deploy script found"
       shell: bash
-    - name: Execute custom script
-      if: ${{ inputs.deploy-script != '' }}
-      run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "22" ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} "${{ inputs.destination-path }}/${{ inputs.deploy-script }} && exit" && echo "Aplicacion desplegada con script custom"
+
+    - name: Execute deploy script
+      run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "22" ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} "cd ${{ inputs.destination-path }} && ./${{ inputs.deploy-script }} ${{ inputs.image-version }} ${{ inputs.environment }} && exit" && echo "Application deployed with script"
       shell: bash
