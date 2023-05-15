@@ -52,20 +52,20 @@ runs:
       run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -P "22" -r ${{ inputs.origin-path }} ${{ inputs.ssh-user }}@${{ inputs.ssh-host }}:${{ inputs.destination-path }} && echo "Ficheros copiados"
       shell: bash
 
-    - name: [DOCKER-COMPOSE] Pull images
+    - name: DOCKER-COMPOSE Pull images
       if: inputs.mode == 'DOCKER-COMPOSE'
       run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "22" ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} "TAG=SNAPSHOT docker-compose -f ${{ inputs.destination-path }}${{ inputs.compose-path }}/docker-compose.yml pull && exit" && echo "Imágenes actualizadas"
       shell: bash
-    - name: [DOCKER-COMPOSE] Deploy docker
+    - name: DOCKER-COMPOSE Deploy docker
       if: inputs.mode == 'DOCKER-COMPOSE'
       run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "22" ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} "TAG=SNAPSHOT docker-compose -f ${{ inputs.destination-path }}${{ inputs.compose-path }}/docker-compose.yml up -d && exit" && echo "Aplicacion desplegada"
       shell: bash
 
-    - name: [SCRIPT] Execution permission to custom script
+    - name: SCRIPT Execution permission to custom script
       if: inputs.mode == 'SCRIPT'
       run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "22" ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} "chmod +x ${{ inputs.destination-path }}/${{ inputs.deploy-script }} && exit" && echo "Script de despliegue encontrado"
       shell: bash
-    - name: [SCRIPT] Execute deploy script
+    - name: SCRIPT Execute deploy script
       if: inputs.mode == 'SCRIPT'
       run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "22" ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} "cd ${{ inputs.destination-path }} && ./${{ inputs.deploy-script }} ${{ inputs.image-version }} ${{ inputs.environment }} && exit" && echo "Aplicación desplegada con script"
       shell: bash
