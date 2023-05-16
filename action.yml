@@ -24,6 +24,9 @@ inputs:
     description: 'Execution mode (SCRIPT or DOCKER-COMPOSE)'
     required: false
     default: "SCRIPT"
+  image-version:
+    description: 'Docker image version to deploy'
+    required: false
 
   # For DOCKER-COMPOSE deployments
   compose-path:
@@ -35,9 +38,7 @@ inputs:
   deploy-script:
     description: 'Script provided by app to deploy it'
     required: false
-  image-version:
-    description: 'Docker image version to deploy'
-    required: false
+
   environment:
     description: 'Application environment'
     required: false
@@ -54,11 +55,11 @@ runs:
 
     - name: DOCKER-COMPOSE Pull images
       if: inputs.mode == 'DOCKER-COMPOSE'
-      run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "22" ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} "TAG=SNAPSHOT docker-compose -f ${{ inputs.destination-path }}${{ inputs.compose-path }}/docker-compose.yml pull && exit" && echo "Imágenes actualizadas"
+      run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "22" ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} "TAG=${{ inputs.image-version }} docker-compose -f ${{ inputs.destination-path }}${{ inputs.compose-path }}/docker-compose.yml pull && exit" && echo "Imágenes actualizadas"
       shell: bash
     - name: DOCKER-COMPOSE Deploy docker
       if: inputs.mode == 'DOCKER-COMPOSE'
-      run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "22" ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} "TAG=SNAPSHOT docker-compose -f ${{ inputs.destination-path }}${{ inputs.compose-path }}/docker-compose.yml up -d && exit" && echo "Aplicacion desplegada"
+      run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "22" ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} "TAG=${{ inputs.image-version }} docker-compose -f ${{ inputs.destination-path }}${{ inputs.compose-path }}/docker-compose.yml up -d && exit" && echo "Aplicacion desplegada"
       shell: bash
 
     - name: SCRIPT Execution permission to custom script
