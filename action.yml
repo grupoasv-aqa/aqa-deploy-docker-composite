@@ -32,7 +32,11 @@ inputs:
   compose-path:
     description: 'Subfolder where docker-compose.yml is'
     required: false
-    default: "/"
+    default: ""
+  compose-filename:
+    description: 'Name of docker-compose file'
+    required: false
+    default: "docker-compose.yml"
 
 # For SCRIPT deployments
   deploy-script:
