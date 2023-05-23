@@ -59,11 +59,11 @@ runs:
 
     - name: DOCKER-COMPOSE Pull images
       if: inputs.mode == 'DOCKER-COMPOSE'
-      run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "22" ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} "docker-compose --env-file=${{ inputs.destination-path }}${{ inputs.compose-path }}/githubcreds -f ${{ inputs.destination-path }}${{ inputs.compose-path }}/docker-compose.yml pull && exit" && echo "Imágenes actualizadas"
+      run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "22" ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} "docker-compose --env-file=${{ inputs.destination-path }}${{ inputs.compose-path }}/githubcreds -f ${{ inputs.destination-path }}${{ inputs.compose-path }}/${{ inputs.compose-filename}} pull && exit" && echo "Imágenes actualizadas"
       shell: bash
     - name: DOCKER-COMPOSE Deploy docker
       if: inputs.mode == 'DOCKER-COMPOSE'
-      run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "22" ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} "docker-compose --env-file=${{ inputs.destination-path }}${{ inputs.compose-path }}/githubcreds -f ${{ inputs.destination-path }}${{ inputs.compose-path }}/docker-compose.yml up -d && exit" && echo "Aplicacion desplegada"
+      run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "22" ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} "docker-compose --env-file=${{ inputs.destination-path }}${{ inputs.compose-path }}/githubcreds -f ${{ inputs.destination-path }}${{ inputs.compose-path }}/${{ inputs.compose-filename}} up -d && exit" && echo "Aplicacion desplegada"
       shell: bash
 
     - name: SCRIPT Execution permission to custom script
