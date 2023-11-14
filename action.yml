@@ -54,7 +54,7 @@ runs:
       run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p "22" ${{ inputs.ssh-user }}@${{ inputs.ssh-host }} "mkdir -p ${{ inputs.destination-path }} && rm -fr ${{ inputs.destination-path }}/* && exit" && echo "Path listo"
       shell: bash
     - name: Copy files
-      run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -P "22" -r ${{ inputs.origin-path }} ${{ inputs.ssh-user }}@${{ inputs.ssh-host }}:${{ inputs.destination-path }} && echo "Ficheros copiados"
+      run: eval $(ssh-agent -s) && ssh-add <(echo "${{ inputs.ssh-private-key }}") && scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -P "22" -r ${{ inputs.origin-path }}/* ${{ inputs.ssh-user }}@${{ inputs.ssh-host }}:${{ inputs.destination-path }} && echo "Ficheros copiados"
       shell: bash
 
     - name: DOCKER-COMPOSE Pull images
